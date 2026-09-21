@@ -25,9 +25,9 @@ def base_url_matches(url: str, base_url: str | None) -> bool:
 	)
 
 
-def read_ignored_subfolders(folder: Path) -> set[str]:
-	"""Read ignored folder names and relative paths from subignore.txt."""
-	ignore_file = folder / "subignore.txt"
+def read_ignored_paths(folder: Path) -> set[str]:
+	"""Read ignored file and folder names and relative paths from fileignore.txt."""
+	ignore_file = folder / "fileignore.txt"
 	if not ignore_file.is_file():
 		return set()
 
@@ -44,7 +44,7 @@ def read_ignored_subfolders(folder: Path) -> set[str]:
 
 def find_urls(folder: Path, base_url: str | None = None):
 	"""Yield each readable file and its matching URLs."""
-	ignored_subfolders = read_ignored_subfolders(folder)
+	ignored_paths = read_ignored_paths(folder)
 	script_path = Path(__file__).resolve()
 	for current_folder, subfolders, filenames in os.walk(folder):
 		current_path = Path(current_folder)
@@ -52,15 +52,21 @@ def find_urls(folder: Path, base_url: str | None = None):
 		subfolders[:] = [
 			subfolder
 			for subfolder in subfolders
-			if subfolder not in ignored_subfolders
+			if subfolder not in ignored_paths
 			and str((current_path / subfolder).relative_to(folder)).replace("\\", "/")
-				not in ignored_subfolders
+				not in ignored_paths
 		]
 
 		for filename in sorted(filenames):
 			file_path = current_path / filename
-			# Never scan the running script or any subignore configuration file.
-			if filename == "subignore.txt" or file_path.resolve() == script_path:
+			# Never scan the running script or the fileignore configuration file.
+			relative_path = str(file_path.relative_to(folder)).replace("\\", "/")
+			if (
+				filename == "fileignore.txt"
+				or filename in ignored_paths
+				or relative_path in ignored_paths
+				or file_path.resolve() == script_path
+			):
 				continue
 			try:
 				contents = file_path.read_text(encoding="utf-8")

@@ -56,16 +56,17 @@ python url-explorer.py . \
 	--export-excel example-results.xlsx
 ```
 
-## Ignoring folders
+## Ignoring files and folders
 
-Create a `subignore.txt` file in the folder being scanned to skip folders. Add one folder name or relative folder path per line. Empty lines and lines beginning with `#` are ignored.
+Create a `fileignore.txt` file in the folder being scanned to skip files and folders. Add one file or folder name, or a relative path, per line. Empty lines and lines beginning with `#` are ignored.
 
-Example `subignore.txt`:
+Example `fileignore.txt`:
 
 ```text
 venv
 node_modules
 archive/old-files
+README.md
 ```
 
-The script skips `subignore.txt` itself and does not scan the Python script that is currently running.
+The script skips `fileignore.txt` itself and does not scan the Python script that is currently running.
