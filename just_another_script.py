@@ -76,6 +76,25 @@ def find_urls(folder: Path, base_url: str | None = None):
 			yield file_path, urls
 
 
+def export_to_excel(
+	results: list[tuple[Path, list[str]]], output_path: Path
+) -> None:
+	"""Export found URLs and their source files to an Excel workbook."""
+	import pandas as pd
+
+	rows = [
+		{
+			"file": str(file_path),
+			"url": url,
+			"url_count": len(urls),
+		}
+		for file_path, urls in results
+		for url in urls
+	]
+	dataframe = pd.DataFrame(rows, columns=["file", "url", "url_count"])
+	dataframe.to_excel(output_path, index=False)
+
+
 def main() -> None:
 	parser = argparse.ArgumentParser(
 		description="Recursively print URLs found in files."
@@ -85,16 +104,26 @@ def main() -> None:
 		"--base-url",
 		help="Only print URLs with this scheme and host, for example https://example.com",
 	)
+	parser.add_argument(
+		"--export-excel",
+		type=Path,
+		metavar="FILE",
+		help="Also export found URLs to an Excel file",
+	)
 	args = parser.parse_args()
 
 	if not args.folder.is_dir():
 		parser.error(f"not a folder: {args.folder}")
 
-	for file_path, urls in find_urls(args.folder, args.base_url):
+	results = list(find_urls(args.folder, args.base_url))
+	for file_path, urls in results:
 		# Print each matching URL, followed by the count for this file.
 		for url in urls:
 			print(f"{file_path}: {url}")
 		print(f"{file_path}: {len(urls)} URL(s)")
+
+	if args.export_excel:
+		export_to_excel(results, args.export_excel)
 
 
 if __name__ == "__main__":

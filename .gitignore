@@ -1,3 +1,5 @@
 venv
 different_text_with_urls.txt
 lorem_ipsum_with_urls.txt
+__pycache__/
+*.xlsx*
